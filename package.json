@@ -1,0 +1,12 @@
+{
+  "name": "monev-revenue-harian",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Form realisasi harian dan pembebanan target revenue — Regarmarket",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  }
+}
