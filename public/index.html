@@ -114,7 +114,25 @@ input.amt.dp{width:112px}
 .st.warn{background:var(--beban-bg);color:var(--beban)}
 .st.bad{background:var(--danger-bg);color:var(--danger)}
 .st.idle{background:var(--line-2);color:var(--muted)}
-tfoot td{font-weight:700;background:#F8FAFC;border-top:1px solid var(--line);border-bottom:0}
+tfoot td{font-weight:700;background:#F8FAFC;border-top:2px solid var(--navy);border-bottom:0}
+
+/* garis kisi lembar realisasi */
+#tbl{border:1px solid var(--line);border-radius:var(--r-sm)}
+#tbl th,#tbl td{border-right:1px solid var(--line-2)}
+#tbl th{border-right-color:#D9E0EA;border-bottom:1px solid var(--line)}
+#tbl th:last-child,#tbl td:last-child{border-right:0}
+#tbl th:first-child,#tbl td:first-child{border-right:1px solid var(--line)}
+#tbl tbody td{border-bottom:1px solid var(--line-2)}
+#tbl tbody tr:last-child td{border-bottom:1px solid var(--line)}
+#tbl td.efektif{background:#FBFCFE}
+#tbl td.efektif.locked{color:var(--muted);font-weight:600}
+#tbl td.efektif .lock{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted-2);margin-top:1px}
+#tbl tfoot td.mismatch{color:var(--beban);background:var(--beban-bg)}
+#tbl tfoot td.mismatch .lock{display:block;font-size:9px;font-weight:700;letter-spacing:.04em;
+  text-transform:none;color:var(--beban);margin-top:1px}
+#tbl tfoot td{border-right:1px solid #DDE3EC}
+#tbl tfoot td:last-child{border-right:0}
 tr.wk td{background:#EEF2F8;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   text-align:left;padding:7px 10px;position:sticky;left:0}
 .wk-n{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-right:10px}
@@ -268,7 +286,7 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
   <section class="panel">
     <div class="panel-h">
       <h2>Lembar Realisasi Harian</h2>
-      <div class="note"><b>Rencana Harian</b> bisa diedit langsung — kolom bergaris putus-putus. Isi <b>Realisasi Total</b> untuk menutup hari. Kolom <b>DP</b> opsional — Pelunasan dihitung otomatis. Ketik bebas: <code style="font-family:var(--mono)">500jt</code>, <code style="font-family:var(--mono)">1,2m</code>, atau <code style="font-family:var(--mono)">500.000.000</code>.</div>
+      <div class="note"><b>Rencana Harian</b> bisa diedit langsung — kolom bergaris putus-putus. Isi <b>Realisasi Total</b> untuk menutup hari. Hari yang sudah closing dikunci pada realisasinya sehingga kolom <b>Target Efektif</b> selalu berjumlah tepat target bulan. Kolom <b>DP</b> opsional — Pelunasan dihitung otomatis. Ketik bebas: <code style="font-family:var(--mono)">500jt</code>, <code style="font-family:var(--mono)">1,2m</code>, atau <code style="font-family:var(--mono)">500.000.000</code>.</div>
     </div>
     <div class="tbl-scroll">
       <table id="tbl">
@@ -313,7 +331,7 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
       <div>
         <ul class="rules">
           <li><b>Aturan beban.</b> <code>Beban hari-i = Defisit kumulatif × bobot-i ÷ total bobot hari tersisa</code>. Mode <b>Rata</b> membagi sama besar; mode <b>Proporsional</b> membagi mengikuti besar target dasar tiap hari (hari puncak menanggung lebih besar).</li>
-          <li><b>Invarian.</b> Realisasi closing + target efektif hari tersisa selalu sama dengan basis bulan. Tidak ada kekurangan yang hilang.</li>
+          <li><b>Invarian.</b> Kolom <b>Target Efektif</b> berjumlah tepat sama dengan target bulan. Hari yang sudah closing terkunci pada angka realisasinya — kekurangannya sudah pindah ke hari berikutnya, jadi tidak dihitung dua kali. Arahkan kursor ke sel terkunci untuk melihat target yang berlaku saat hari itu ditutup; angka itulah pembanding kolom Deviasi.</li>
           <li><b>Surplus.</b> Mode <i>Kurangi sisa</i> memakai kelebihan untuk meringankan hari berikutnya. Mode <i>Simpan</i> menahan surplus sebagai cadangan — target sisa tetap penuh.</li>
           <li><b>Rencana harian bisa diedit.</b> Preset <i>Potong pekan 2</i> menarik buffer 250 jt dari lima hari 550 jt di pekan 2 (HK 8–12) menjadi 500 jt, hari puncak weekend HK 13 tetap 700 jt. Total rencana jadi 13,1 M — pas dengan target bulan, sehingga kedua basis menghasilkan angka yang sama.</li>
           <li><b>Indeks Tekanan.</b> Target efektif ÷ target dasar hari tersisa. <code>≤1,05</code> aman · <code>≤1,20</code> waspada · <code>&gt;1,20</code> kritis — di atas 1,20 beban tidak lagi realistis lewat jalur reguler, wajib naik ke tuas Slot DP atau percepatan pelunasan.</li>
@@ -594,11 +612,29 @@ function compute(){
   // kumulatif realisasi
   let kum=0; rows.forEach(r=>{ if(r.closed){ kum+=r.d.total; r.kum=kum; } else r.kum=null; });
 
-  // agregat Slot DP & Pelunasan
-  const dpTarget  = rows.reduce((s,r)=>s+r.efektif*r.d.dpPct,0);
-  const pTarget   = rows.reduce((s,r)=>s+r.efektif*(1-r.d.dpPct),0);
-  const dpSisa    = open.reduce((s,r)=>s+r.efektif*r.d.dpPct,0);
-  const pSisa     = open.reduce((s,r)=>s+r.efektif*(1-r.d.dpPct),0);
+  /* Kontribusi hari terhadap basis bulan.
+     Hari yang sudah closing terkunci pada realisasinya — kekurangannya sudah
+     dipindahkan ke hari berikutnya, jadi tidak boleh dihitung dua kali.
+     r.efektif tetap menyimpan target yang berlaku saat hari itu ditutup,
+     dipakai untuk menghitung deviasi.
+     Invarian: Σ kontrib = basis bulan.                                  */
+  rows.forEach(r=>{ r.kontrib = r.closed ? r.d.total : Math.round(r.efektif); });
+  // sisa pembulatan rupiah diserap hari terbuka terakhir agar kolom benar-benar genap
+  const akhir = [...rows].reverse().find(r=>!r.closed);
+  if(akhir){
+    akhir.kontrib += Math.round(basisTot) - rows.reduce((s,r)=>s+r.kontrib,0);
+    akhir.efektif  = akhir.kontrib;
+    akhir.beban    = akhir.kontrib - akhir.d.base;
+  }
+
+  // pecahan DP/Pelunasan per hari — pelunasan diambil dari sisa agar DP+P = kontribusi
+  rows.forEach(r=>{ r.dpT = Math.round(r.kontrib*r.d.dpPct); r.pT = r.kontrib - r.dpT; });
+
+  // agregat Slot DP & Pelunasan — dijumlahkan dari angka yang tampil di layar
+  const dpTarget  = rows.reduce((s,r)=>s+r.dpT,0);
+  const pTarget   = rows.reduce((s,r)=>s+r.pT,0);
+  const dpSisa    = open.reduce((s,r)=>s+r.dpT,0);
+  const pSisa     = open.reduce((s,r)=>s+r.pT,0);
   const splitRows = rows.filter(r=>r.closed && r.d.dp!=null);
   const realP     = splitRows.reduce((s,r)=>s+(r.d.total-r.d.dp),0);
   const realSplit = splitRows.reduce((s,r)=>s+r.d.total,0);
@@ -613,7 +649,7 @@ function compute(){
   const pekan = {};
   rows.forEach(r=>{
     const p = pekan[r.d.pekan] || (pekan[r.d.pekan]={pekan:r.d.pekan,label:(P().pekanLabel||{})[r.d.pekan]||("Pekan "+r.d.pekan),base:0,asli:0,real:0,efektif:0,closed:0,total:0});
-    p.base+=r.d.base; p.asli+=r.d.baseAsli; p.efektif += r.closed? r.d.total : r.efektif;
+    p.base+=r.d.base; p.asli+=r.d.baseAsli; p.efektif += r.kontrib;
     p.total++; if(r.closed){ p.real+=r.d.total; p.closed++; }
   });
 
@@ -724,9 +760,9 @@ function rowHTML(r,i){
       <td><input class="amt base" data-f="base" data-i="${i}" inputmode="numeric"
            value="${rp(d.base)}" aria-label="Rencana harian HK ${d.hk}"></td>
       <td class="n beban">${r.beban>0?"+"+rp(r.beban):(r.beban<0?rp(r.beban):"—")}</td>
-      <td class="n efektif">${rp(r.efektif)}</td>
-      <td class="n">${rp(r.efektif*d.dpPct)} <span class="pctag">${Math.round(d.dpPct*100)}%</span></td>
-      <td class="n">${rp(r.efektif*(1-d.dpPct))} <span class="pctag">${Math.round((1-d.dpPct)*100)}%</span></td>
+      <td class="n efektif${r.closed?" locked":""}"${r.closed?` title="Terkunci pada realisasi. Target yang berlaku saat hari itu ditutup: ${rp(r.efektif)}"`:""}>${rp(r.kontrib)}${r.closed?`<span class="lock">terkunci</span>`:""}</td>
+      <td class="n">${rp(r.dpT)} <span class="pctag">${Math.round(d.dpPct*100)}%</span></td>
+      <td class="n">${rp(r.pT)} <span class="pctag">${Math.round((1-d.dpPct)*100)}%</span></td>
       <td><input class="amt" data-f="total" data-i="${i}" inputmode="numeric" placeholder="0"
            value="${d.total!=null?rp(d.total):""}" aria-label="Realisasi total HK ${d.hk}"></td>
       <td><input class="amt dp" data-f="dp" data-i="${i}" inputmode="numeric" placeholder="opsional"
@@ -742,12 +778,16 @@ function rowHTML(r,i){
 
 function renderFoot(c){
   const totBase = c.planTotal;
-  const totEfektif = c.rows.reduce((s,r)=>s+(r.closed?r.d.total:r.efektif),0);
+  const totEfektif = c.rows.reduce((s,r)=>s+r.kontrib,0);
+  const beda = Math.round(totEfektif) - Math.round(TB());
+  const bedaSebab = c.open.length===0
+    ? "Semua hari sudah closing — bulan ditutup di angka ini."
+    : "Total rencana harian belum pas dengan target bulan. Rapikan lewat Pengaturan Periode → Paskan selisih, atau ubah Basis sisa ke Target bulan.";
   document.getElementById("tfoot").innerHTML = `<tr>
     <td>TOTAL · ${c.closedN} closing / ${c.open.length} sisa</td>
     <td class="n">${rp(totBase)}</td>
     <td class="n beban">${c.bebanTot>0?"+":""}${rp(c.bebanTot)}</td>
-    <td class="n">${rp(totEfektif)}</td>
+    <td class="n${beda?" mismatch":""}"${beda?` title="Selisih ${rp(beda)} terhadap target bulan ${rp(TB())}. ${bedaSebab}"`:""}>${rp(totEfektif)}${beda?`<span class="lock">${beda>0?"+":""}${rpS(beda)} vs target</span>`:""}</td>
     <td class="n">${rp(c.dpTarget)}</td>
     <td class="n">${rp(c.pTarget)}</td>
     <td class="n">${rp(c.realisasi)}</td>
@@ -770,7 +810,7 @@ function renderChart(c){
   const planPts=[], realPts=[], efPts=[];
   c.rows.forEach((r,i)=>{
     kp += r.d.base; planPts.push([x(i),y(kp)]);
-    ke += r.closed ? r.d.total : r.efektif; efPts.push([x(i),y(ke)]);
+    ke += r.kontrib; efPts.push([x(i),y(ke)]);
     if(r.closed){ kr += r.d.total; realPts.push([x(i),y(kr)]); }
   });
   const path = pts => pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
@@ -1006,9 +1046,12 @@ function updateRowsExceptInputs(c){
     const td = tr.children;
     tr.className = (r.closed?"closed":"open")+(d.tgl===TODAY?" today":"");
     td[2].textContent = r.beban>0? "+"+rp(r.beban) : (r.beban<0? rp(r.beban) : "—");
-    td[3].textContent = rp(r.efektif);
-    td[4].innerHTML = rp(r.efektif*d.dpPct)+` <span class="pctag">${Math.round(d.dpPct*100)}%</span>`;
-    td[5].innerHTML = rp(r.efektif*(1-d.dpPct))+` <span class="pctag">${Math.round((1-d.dpPct)*100)}%</span>`;
+    td[3].className = "n efektif"+(r.closed?" locked":"");
+    td[3].innerHTML = rp(r.kontrib)+(r.closed?`<span class="lock">terkunci</span>`:"");
+    if(r.closed) td[3].title = "Terkunci pada realisasi. Target yang berlaku saat hari itu ditutup: "+rp(r.efektif);
+    else td[3].removeAttribute("title");
+    td[4].innerHTML = rp(r.dpT)+` <span class="pctag">${Math.round(d.dpPct*100)}%</span>`;
+    td[5].innerHTML = rp(r.pT)+` <span class="pctag">${Math.round((1-d.dpPct)*100)}%</span>`;
     const p = d.total!=null && d.dp!=null ? d.total-d.dp : null;
     td[8].textContent = p!=null? rp(p) : "—";
     td[9].textContent = r.dev!=null? (r.dev>=0?"+":"")+rp(r.dev) : "—";
@@ -1343,11 +1386,11 @@ function buildWorkbook(){
     row[3]={v:d.pekan,t:"n",s:14};
     row[4]=N(d.base,16);
     row[5]=r.beban? N(r.beban,15) : blank(4);
-    row[6]=N(r.efektif,16);
+    row[6]=N(r.kontrib,16);
     row[7]={v:d.dpPct,t:"n",s:7};
     row[8]={v:1-d.dpPct,t:"n",s:7};
-    row[9]=N(r.efektif*d.dpPct);
-    row[10]=N(r.efektif*(1-d.dpPct));
+    row[9]=N(r.dpT);
+    row[10]=N(r.pT);
     row[11]= d.total!=null? N(d.total,8) : blank(8);
     row[12]= d.dp!=null? N(d.dp,8) : blank(8);
     row[13]= pel!=null? N(pel) : blank(4);
@@ -1364,7 +1407,7 @@ function buildWorkbook(){
   tot[1]={v:c.closedN+" closing / "+c.open.length+" sisa",t:"s",s:12};
   tot[4]={v:Math.round(c.planTotal),t:"n",s:13};
   tot[5]={v:Math.round(c.bebanTot),t:"n",s:13};
-  tot[6]={v:Math.round(c.rows.reduce((s,r)=>s+(r.closed?r.d.total:r.efektif),0)),t:"n",s:13};
+  tot[6]={v:Math.round(c.rows.reduce((s,r)=>s+r.kontrib,0)),t:"n",s:13};
   tot[9]={v:Math.round(c.dpTarget),t:"n",s:13};
   tot[10]={v:Math.round(c.pTarget),t:"n",s:13};
   tot[11]={v:Math.round(c.realisasi),t:"n",s:13};
@@ -1377,7 +1420,8 @@ function buildWorkbook(){
   [
     "Aturan beban: defisit kumulatif dibagi ke hari kerja yang belum closing — metode "+(state.mode==="prop"?"proporsional terhadap rencana harian":"rata")+".",
     "Invarian: realisasi hari closing + target efektif hari tersisa selalu sama dengan basis bulan ("+rp(c.basisTot)+").",
-    "Sel berlatar kuning adalah angka realisasi yang diinput di form. Angka lain terhitung otomatis."
+    "Sel berlatar kuning adalah angka realisasi yang diinput di form. Angka lain terhitung otomatis.",
+    "Target Efektif hari yang sudah closing terkunci pada realisasinya, sehingga kolomnya berjumlah tepat target bulan. Pembanding kolom Deviasi adalah target yang berlaku saat hari itu ditutup."
   ].forEach(t=>rows.push([{v:t,t:"s",s:0}]));
 
   const merges = ["A1:"+colName(NC-1)+"1","A2:"+colName(NC-1)+"2"];
