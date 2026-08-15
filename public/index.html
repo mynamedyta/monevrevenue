@@ -207,6 +207,13 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
   background:var(--ok-bg);border:1px solid #BFE3D5;font-size:12.5px;font-weight:600;color:var(--ok)}
 .gap-bar.off{background:var(--beban-bg);border-color:var(--beban-line);color:var(--beban)}
 .gap-bar .g-n{font-family:var(--mono)}
+.riwayat{margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px}
+.riwayat h4{margin:0 0 6px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.riwayat li{list-style:none;font-size:11.5px;color:var(--ink-2);padding:3px 0;border-bottom:1px dashed var(--line-2)}
+.riwayat li:last-child{border-bottom:0}
+.riwayat b{font-family:var(--mono)}
+.riwayat span{color:var(--muted)}
+.riwayat ul{margin:0;padding:0}
 @media (max-width:860px){
   .komando{grid-template-columns:1fr}
   .mh-facts{gap:16px}
@@ -346,7 +353,7 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
     <section class="panel">
       <div class="panel-h">
         <h2>Koneksi Data</h2>
-        <div class="note">Data tersimpan di jsonbin.io lewat fungsi serverless. Kunci jsonbin disimpan di server, tidak pernah dikirim ke browser.</div>
+        <div class="note">Data tersimpan lewat fungsi serverless — Vercel KV (Upstash Redis) bila tersetel, kalau tidak jsonbin.io. Kuncinya disimpan di server, tidak pernah dikirim ke browser.</div>
       </div>
       <div class="panel-b grid2">
         <div>
@@ -356,17 +363,57 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
             <span class="hint">Tersimpan di browser ini saja. Bisa juga lewat tautan <code>?token=…</code>.</span></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn" id="conn-token-simpan" type="button">Simpan kunci &amp; uji</button>
-            <button class="btn" id="conn-simpan" type="button">Kirim ke jsonbin</button>
-            <button class="btn ghost" id="conn-tarik" type="button">Tarik dari jsonbin</button>
+            <button class="btn" id="conn-simpan" type="button">Kirim sekarang</button>
+            <button class="btn ghost" id="conn-tarik" type="button">Tarik dari server</button>
           </div>
         </div>
         <div>
           <ul class="rules">
             <li>Perubahan tersimpan otomatis ± 1 detik setelah berhenti mengetik. Tombol di samping hanya untuk memaksa sinkron.</li>
-            <li>Bila server tidak terjangkau, aplikasi tetap jalan memakai cadangan di browser dan chip status berubah jadi <b>Mode lokal</b>. Klik <b>Kirim ke jsonbin</b> setelah jaringan pulih.</li>
+            <li>Bila server tidak terjangkau, aplikasi tetap jalan memakai cadangan di browser dan chip status berubah jadi <b>Mode lokal</b>. Pengiriman dicoba ulang otomatis setelah 15 detik, 45 detik, 2 menit, lalu 5 menit. Tombol <b>Kirim ke jsonbin</b> untuk memaksa langsung.</li>
+            <li>Kode <b>520–527</b> pada pesan galat berasal dari Cloudflare di depan jsonbin — server jsonbin sedang tidak menjawab. Bukan salah kunci atau setelan; tunggu saja, data tetap aman di cadangan browser. Gangguan seperti ini alasan utama pindah ke Vercel KV.</li>
             <li>Satu bin menampung seluruh periode. Hindari dua orang menyunting bersamaan — penyimpanan memakai aturan tulisan terakhir menang.</li>
-            <li>Pengiriman hanya terjadi bila isi benar-benar berubah, sekitar 2,5 detik setelah berhenti mengetik. Kuota jsonbin gratis 10.000 panggilan sekali pakai, jadi hitungan ini penting.</li>
+            <li>Pengiriman hanya terjadi bila isi benar-benar berubah, sekitar 2,5 detik setelah berhenti mengetik. Kuota jsonbin gratis 10.000 panggilan sekali pakai; Vercel KV memberi 500.000 perintah per bulan yang diisi ulang tiap bulan.</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <h2>Periode Berjalan — <span id="run-label"></span></h2>
+        <div class="note">Ubah target bulan di tengah jalan. Realisasi yang sudah masuk tidak akan tersentuh.</div>
+      </div>
+      <div class="panel-b grid2">
+        <div>
+          <div class="field"><label for="run-target">Target Revenue Bulan</label>
+            <input type="text" id="run-target" class="num-in">
+            <span class="hint">Boleh ditulis 14m, 14,5m, atau 14000000000</span></div>
+          <div class="seg" role="group" aria-label="Cara menyebar target" style="margin-bottom:9px">
+            <span class="lbl">Sebar ke</span>
+            <button type="button" data-tsebar="sisa" aria-pressed="true">Hari tersisa</button>
+            <button type="button" data-tsebar="semua" aria-pressed="false">Seluruh HK</button>
+          </div>
+          <div class="seg" role="group" aria-label="Acuan proporsi" style="margin-bottom:11px">
+            <span class="lbl">Acuan proporsi</span>
+            <button type="button" data-tacuan="jalan" aria-pressed="true">Rencana berjalan</button>
+            <button type="button" data-tacuan="asli" aria-pressed="false">Rencana asal</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn" id="run-terap" type="button">Terapkan target baru</button>
+            <button class="btn ghost" id="run-batal" type="button">Kembalikan angka</button>
+          </div>
+          <div class="gap-bar" id="run-preview" style="margin-top:12px"></div>
+        </div>
+        <div>
+          <ul class="rules">
+            <li><b>Pembagiannya proporsional, bukan rata.</b> Hari puncak tetap menanggung porsi lebih besar, hari reguler lebih kecil, dengan perbandingan yang persis dipertahankan.</li>
+            <li><b>Acuan proporsi.</b> <i>Rencana berjalan</i> memakai perbandingan rencana yang sedang berlaku sekarang, termasuk revisi yang pernah Bapak buat — ini bawaannya. <i>Rencana asal</i> kembali ke perbandingan saat periode pertama disusun, sehingga revisi seperti pemotongan pekan tertentu ikut hilang.</li>
+            <li><b>Hari tersisa</b> membiarkan rencana hari yang sudah closing apa adanya, jadi deviasi dan catatan hari lampau tidak berubah. Ini pilihan yang tepat untuk revisi di tengah bulan.</li>
+            <li><b>Seluruh HK</b> menskalakan semua hari termasuk yang sudah closing. Dipakai bila targetnya memang salah sejak awal bulan — deviasi hari lampau ikut terhitung ulang.</li>
+            <li>Realisasi dan Realisasi DP tidak pernah diubah oleh tombol ini, apa pun pilihannya.</li>
+          </ul>
+          <div id="run-riwayat"></div>
         </div>
       </div>
     </section>
@@ -946,7 +993,113 @@ function renderSetup(c){
   </tr>`).join("");
 
   renderGapBar();
+  document.getElementById("run-label").textContent = perLabel();
+  const ti = document.getElementById("run-target");
+  if(ti && document.activeElement!==ti) ti.value = rp(pd.target);
+  previewTarget();
+  renderRiwayat();
   void c;
+}
+
+/* ---- revisi target periode berjalan ----
+   Menyebar target baru ke rencana harian mengikuti proporsi rencana awal
+   (baseAsli). Realisasi tidak pernah disentuh. */
+function hitungSebar(baru, cara, acuan){
+  const pd = P();
+  const semua = cara==="semua";
+  const sasaran = semua ? pd.days.slice() : pd.days.filter(d=>d.total==null);
+  const baseClosing = semua ? 0 : pd.days.filter(d=>d.total!=null).reduce((s,d)=>s+d.base,0);
+  let jatah = baru - baseClosing;
+  let terlampaui = false;
+  if(jatah < 0){ jatah = 0; terlampaui = true; }
+
+  /* Bobot = rencana berjalan (bawaan) atau rencana asal.
+     Hari berbobot nol — misalnya baru ditambahkan lewat kalender — diberi
+     bobot rata-rata supaya tidak ditelantarkan saat pembagian. */
+  const ambil = d => (acuan==="asli" ? (d.baseAsli!=null?d.baseAsli:d.base) : (d.base||d.baseAsli)) || 0;
+  const isi = sasaran.map(ambil).filter(v=>v>0);
+  const rerata = isi.length ? isi.reduce((a,b)=>a+b,0)/isi.length : 1;
+  const bobot = d => ambil(d) || rerata;
+
+  const W = sasaran.reduce((s,d)=>s+bobot(d),0);
+  const porsi = d => W>0 ? bobot(d)/W : (sasaran.length? 1/sasaran.length : 0);
+  const nilai = new Map();
+  let terpakai = 0;
+  sasaran.forEach(d=>{
+    const v = Math.max(0, Math.round(jatah*porsi(d)/1e6)*1e6);
+    nilai.set(d, v); terpakai += v;
+  });
+  // sisa pembulatan ditaruh di hari berbobot terbesar supaya tidak menonjol
+  const sisa = jatah - terpakai;
+  if(sisa && sasaran.length){
+    const t = sasaran.reduce((a,b)=> bobot(b)>bobot(a) ? b : a, sasaran[0]);
+    nilai.set(t, Math.max(0, nilai.get(t)+sisa));
+  }
+  return {sasaran, nilai, jatah, baseClosing, terlampaui,
+          realisasi: pd.days.filter(d=>d.total!=null).reduce((s,d)=>s+d.total,0)};
+}
+
+function caraSebar(){
+  const b = document.querySelector('[data-tsebar][aria-pressed="true"]');
+  return b ? b.dataset.tsebar : "sisa";
+}
+function acuanSebar(){
+  const b = document.querySelector('[data-tacuan][aria-pressed="true"]');
+  return b ? b.dataset.tacuan : "jalan";
+}
+
+function previewTarget(){
+  const box = document.getElementById("run-preview");
+  if(!box) return;
+  const pd = P();
+  const baru = parseAmt(document.getElementById("run-target").value);
+  if(!baru || baru<=0){
+    box.className="gap-bar off";
+    box.innerHTML=`<span>Isi target baru lebih dulu</span><span>Sekarang <b class="g-n">${rp(pd.target)}</b></span>`;
+    return;
+  }
+  const h = hitungSebar(baru, caraSebar(), acuanSebar());
+  const selisih = baru - pd.target;
+  const rata = h.sasaran.length ? h.jatah/h.sasaran.length : 0;
+  box.className = "gap-bar"+(h.terlampaui?" off":"");
+  box.innerHTML =
+    `<span>${selisih===0?"Target tidak berubah":(selisih>0?"Naik ":"Turun ")+`<b class="g-n">${rp(Math.abs(selisih))}</b>`}</span>`+
+    `<span>${h.sasaran.length} HK menanggung <b class="g-n">${rp(h.jatah)}</b></span>`+
+    `<span>rata-rata <b class="g-n">${rp(rata)}</b>/hari</span>`+
+    (h.baseClosing?`<span>rencana ${P().days.length-h.sasaran.length} hari closing tetap <b class="g-n">${rp(h.baseClosing)}</b></span>`:"")+
+    (h.terlampaui?`<span>Target baru lebih kecil dari rencana hari closing — hari tersisa jadi nol. Pakai Seluruh HK.</span>`:"");
+}
+
+function terapkanTarget(){
+  const pd = P();
+  const baru = parseAmt(document.getElementById("run-target").value);
+  if(!baru || baru<=0){ toast("Isi target baru lebih dulu"); return; }
+  const cara = caraSebar();
+  if(cara==="sisa" && !pd.days.some(d=>d.total==null)){
+    toast("Semua hari sudah closing — pilih Seluruh HK"); return; }
+  const lama = pd.target;
+  const h = hitungSebar(baru, cara, acuanSebar());
+  if(h.terlampaui && !confirm("Target baru lebih kecil dari rencana hari yang sudah closing. Rencana hari tersisa akan menjadi nol. Lanjutkan?")) return;
+  h.nilai.forEach((v,d)=>{ d.base = v; });      // hanya rencana yang diubah
+  pd.target = baru;
+  pd.riwayat = pd.riwayat || [];
+  pd.riwayat.push({waktu:new Date().toISOString(), dari:lama, ke:baru, cara, acuan:acuanSebar(), hk:h.sasaran.length});
+  if(pd.riwayat.length>20) pd.riwayat = pd.riwayat.slice(-20);
+  render();
+  toast("Target jadi "+rpS(baru)+" · disebar ke "+h.sasaran.length+(cara==="semua"?" HK":" hari tersisa"));
+}
+
+function renderRiwayat(){
+  const el = document.getElementById("run-riwayat");
+  if(!el) return;
+  const r = (P().riwayat||[]).slice().reverse();
+  if(!r.length){ el.innerHTML=""; return; }
+  el.innerHTML = `<div class="riwayat"><h4>Riwayat perubahan target</h4><ul>`+
+    r.slice(0,6).map(x=>{
+      const t = new Date(x.waktu);
+      return `<li><b>${rpS(x.dari)}</b> → <b>${rpS(x.ke)}</b>
+        <span>· ${x.cara==="semua"?"seluruh":"tersisa"} ${x.hk} HK · acuan ${x.acuan==="asli"?"asal":"berjalan"} · ${t.toLocaleDateString("id-ID")} ${t.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})}</span></li>`;
+    }).join("")+`</ul></div>`;
 }
 
 /* ---- alat rencana ---- */
@@ -1166,6 +1319,23 @@ document.getElementById("setup-body").addEventListener("blur", e=>{
 }, true);
 
 /* ---- pengaturan: alat & periode baru ---- */
+document.getElementById("run-target").addEventListener("input", previewTarget);
+document.getElementById("run-target").addEventListener("blur", e=>{
+  const v=parseAmt(e.target.value); if(v!=null) e.target.value=rp(v); previewTarget();
+});
+["data-tsebar","data-tacuan"].forEach(attr=>{
+  document.querySelectorAll("["+attr+"]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.querySelectorAll("["+attr+"]").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+      previewTarget();
+    });
+  });
+});
+document.getElementById("run-terap").addEventListener("click", terapkanTarget);
+document.getElementById("run-batal").addEventListener("click", ()=>{
+  document.getElementById("run-target").value = rp(P().target); previewTarget();
+});
+
 document.getElementById("al-rata").addEventListener("click", bagiRata);
 document.getElementById("al-pas").addEventListener("click", paskanSelisih);
 document.getElementById("al-asli").addEventListener("click", ()=>{
@@ -1510,7 +1680,7 @@ function snapshot(){
   return {v:2, savedAt:new Date().toISOString(),
     mode:state.mode, surplus:state.surplus, basis:state.basis, active:state.active,
     periods: Object.fromEntries(Object.entries(state.periods).map(([k,q])=>[k,{
-      bulan:q.bulan, tahun:q.tahun, target:q.target, dpDefault:q.dpDefault,
+      bulan:q.bulan, tahun:q.tahun, target:q.target, dpDefault:q.dpDefault, riwayat:q.riwayat||[],
       days:q.days.map(d=>({tgl:d.tgl,base:d.base,baseAsli:d.baseAsli,dpPct:d.dpPct,peak:!!d.peak,
                            strategi:d.strategi,ket:d.ket,total:d.total,dp:d.dp}))}]))};
 }
@@ -1521,6 +1691,7 @@ function applyData(data){
     Object.entries(data.periods).forEach(([k,q])=>{
       if(!q || !Array.isArray(q.days) || !q.days.length) return;
       per[k]=normalize({bulan:q.bulan, tahun:q.tahun, target:q.target||0, dpDefault:q.dpDefault??0.5,
+        riwayat:Array.isArray(q.riwayat)?q.riwayat:[],
         days:q.days.map(d=>({tgl:d.tgl, base:d.base||0, baseAsli:d.baseAsli??d.base??0,
           dpPct:d.dpPct??0.5, peak:!!d.peak, strategi:d.strategi||"", ket:d.ket||"",
           total:d.total??null, dp:d.dp??null}))});
@@ -1578,7 +1749,7 @@ const db = {
       const r = await fetch("/api/data",{headers:this.head(),cache:"no-store"});
       const j = await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(j.error || ("HTTP "+r.status));
-      this.mode="cloud"; this.err=null;
+      this.mode="cloud"; this.err=null; this.sumber=j.source||"cloud";
       return j.data && Object.keys(j.data).length ? j.data : null;
     }catch(e){
       this.mode="lokal"; this.err=e.message;
@@ -1597,18 +1768,29 @@ const db = {
       const j = await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(j.error || ("HTTP "+r.status));
       this.mode="cloud"; this.err=null; this.last=new Date(); this.sidik=sidik; this.kirim=(this.kirim||0)+1;
+      this.sumber=j.source||this.sumber||"cloud";
+      clearTimeout(this.retryT); this.retryN=0;
       return true;
     }catch(e){
       this.mode="lokal"; this.err=e.message;
+      this.ulangi();                              // jsonbin kadang tumbang sesaat
       return false;
     }finally{ this.busy=false; renderConn(); }
+  },
+  ulangi(){
+    clearTimeout(this.retryT);
+    const jeda=[15000,45000,120000,300000][Math.min(this.retryN||0,3)];
+    this.retryN=(this.retryN||0)+1;
+    this.retryT=setTimeout(()=>{ this.push(snapshot(), true); }, jeda);
   }
 };
 
+const NAMA_SUMBER = {"vercel-kv":"Vercel KV","jsonbin":"jsonbin","jsonbin-migrasi":"jsonbin (akan pindah ke Vercel KV)"};
+const namaSumber = () => NAMA_SUMBER[db.sumber] || "cloud";
 function connText(){
   if(db.busy) return {t:"Menyimpan…", c:"busy"};
-  if(db.mode==="cloud") return {t:"Tersimpan di jsonbin"+(db.last?" · "+db.last.toLocaleTimeString("id-ID"):""), c:"ok"};
-  return {t:"Mode lokal"+(db.err?" · "+db.err:""), c:"off"};
+  if(db.mode==="cloud") return {t:"Tersimpan di "+namaSumber()+(db.last?" · "+db.last.toLocaleTimeString("id-ID"):""), c:"ok"};
+  return {t:"Mode lokal"+(db.err?" · "+db.err:"")+(db.retryN?" · mencoba lagi otomatis":""), c:"off"};
 }
 function renderConn(){
   const st=connText();
@@ -1653,12 +1835,12 @@ async function boot(){
 /* ---- kendali koneksi di tab Pengaturan ---- */
 document.getElementById("conn-simpan").addEventListener("click", async ()=>{
   const ok = await db.push(snapshot());
-  toast(ok? "Data terkirim ke jsonbin" : "Gagal kirim — "+(db.err||"periksa koneksi"));
+  toast(ok? "Data terkirim ke "+namaSumber() : "Gagal kirim — "+(db.err||"periksa koneksi"));
 });
 document.getElementById("conn-tarik").addEventListener("click", async ()=>{
-  if(!confirm("Tarik data dari jsonbin? Perubahan di layar ini yang belum terkirim akan tertimpa.")) return;
+  if(!confirm("Tarik data dari server? Perubahan di layar ini yang belum terkirim akan tertimpa.")) return;
   const data = await db.pull();
-  if(data){ applyData(data); render(); renderConn(); toast(db.mode==="cloud"?"Data ditarik dari jsonbin":"Data diambil dari cadangan lokal"); }
+  if(data){ applyData(data); render(); renderConn(); toast(db.mode==="cloud"?"Data ditarik dari "+namaSumber():"Data diambil dari cadangan lokal"); }
   else { renderConn(); toast("Belum ada data tersimpan — "+(db.err||"bin masih kosong")); }
 });
 document.getElementById("conn-token-simpan").addEventListener("click", async ()=>{
