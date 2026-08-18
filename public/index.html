@@ -160,6 +160,40 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
 .chart{width:100%;height:auto;display:block}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:12.5px;font-weight:600;opacity:0;pointer-events:none;transition:.22s}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- tombol kendala di tabel ---------- */
+.btn.mini{padding:5px 9px;font-size:11.5px;line-height:1.25;text-align:left;white-space:nowrap}
+.btn.mini.perlu{background:var(--beban-bg);border-color:var(--beban-line);color:var(--beban)}
+.btn.mini.terisi{background:#F4F7FC;border-color:#C9D6EA;color:var(--navy);max-width:190px;overflow:hidden}
+.btn.mini .kdl-kat{display:block;overflow:hidden;text-overflow:ellipsis}
+.btn.mini .kdl-n{display:block;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--beban)}
+#tbl td.kdl{text-align:left}
+
+/* ---------- modal ---------- */
+.modal[hidden]{display:none}
+.modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px}
+.modal-bg{position:absolute;inset:0;background:rgba(11,18,32,.45)}
+.modal-box{position:relative;background:var(--surface);border-radius:var(--r-lg);width:min(640px,100%);
+  max-height:92vh;overflow:auto;box-shadow:0 24px 64px -20px rgba(11,18,32,.5)}
+.modal-h{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--line-2)}
+.modal-h h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.modal-sub{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+.modal-b{padding:16px 18px}
+.modal-f{display:flex;gap:8px;align-items:center;padding:14px 18px;border-top:1px solid var(--line-2);background:#FBFCFE;
+  border-radius:0 0 var(--r-lg) var(--r-lg);position:sticky;bottom:0}
+.modal-b textarea{font:inherit;font-size:13px;padding:9px 10px;border:1px solid var(--line);
+  border-radius:var(--r-sm);resize:vertical;color:var(--ink);background:#fff}
+.modal-b textarea:focus{outline:none;border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(34,68,127,.12)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;
+  padding:6px 12px;font:inherit;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.chips button:hover{border-color:var(--muted-2)}
+.chips button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.kdl-sum{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.kdl-sum .kd{border:1px solid var(--line);border-radius:var(--r);padding:9px 12px;min-width:150px}
+.kdl-sum .kd b{display:block;font-family:var(--mono);font-size:14px}
+.kdl-sum .kd span{font-size:11px;color:var(--muted)}
 /* ---------- tab & halaman ---------- */
 .tabs{display:flex;gap:4px;margin:14px 0 0;border-bottom:1px solid var(--line)}
 .tabs button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--muted);
@@ -335,6 +369,7 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
             <th>Capai</th>
             <th>Kum. Realisasi</th>
             <th>Status</th>
+            <th>Kendala</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -364,6 +399,7 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
           <li><b>Invarian.</b> Kolom <b>Target Efektif</b> berjumlah tepat sama dengan target bulan. Hari yang sudah closing terkunci pada angka realisasinya — kekurangannya sudah pindah ke hari berikutnya, jadi tidak dihitung dua kali. Arahkan kursor ke sel terkunci untuk melihat target yang berlaku saat hari itu ditutup; angka itulah pembanding kolom Deviasi.</li>
           <li><b>Surplus.</b> Mode <i>Kurangi sisa</i> memakai kelebihan untuk meringankan hari berikutnya. Mode <i>Simpan</i> menahan surplus sebagai cadangan — target sisa tetap penuh.</li>
           <li><b>Rencana harian bisa diedit.</b> Preset <i>Potong pekan 2</i> menarik buffer 250 jt dari lima hari 550 jt di pekan 2 (HK 8–12) menjadi 500 jt, hari puncak weekend HK 13 tetap 700 jt. Total rencana jadi 13,1 M — pas dengan target bulan, sehingga kedua basis menghasilkan angka yang sama.</li>
+          <li><b>Kendala harian.</b> Kolom paling kanan. Hari yang closing di bawah target ditandai oranye <i>Catat kendala</i> — tekan untuk membuka formulir, pilih kategori, isi uraian, perkiraan dampak, tindak lanjut, dan penanggung jawab. Rekapnya per kategori muncul di tab Histori Bulan dan ikut terbawa ke sheet <i>Kendala</i> saat diekspor ke Excel.</li>
           <li><b>Indeks Tekanan.</b> Target efektif ÷ target dasar hari tersisa. <code>≤1,05</code> aman · <code>≤1,20</code> waspada · <code>&gt;1,20</code> kritis — di atas 1,20 beban tidak lagi realistis lewat jalur reguler, wajib naik ke tuas Slot DP atau percepatan pelunasan.</li>
         </ul>
       </div>
@@ -416,10 +452,18 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
       <div class="panel-h"><h2>Rincian Harian</h2><div class="note">Hanya baca. Untuk mengubah angka, jadikan periode ini aktif.</div></div>
       <div class="tbl-scroll">
         <table class="setup-tbl" id="h-hari">
-          <thead><tr><th>HK</th><th>Tanggal</th><th>Rencana</th><th>Target Efektif</th><th>Realisasi</th><th>DP</th><th>Pelunasan</th><th>Deviasi</th><th>Capai</th><th>Status</th></tr></thead>
+          <thead><tr><th>HK</th><th>Tanggal</th><th>Rencana</th><th>Target Efektif</th><th>Realisasi</th><th>DP</th><th>Pelunasan</th><th>Deviasi</th><th>Capai</th><th>Status</th><th>Kendala</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <h2>Rekap Kendala</h2>
+        <div class="note">Dikelompokkan per kategori, diurutkan dari yang paling sering.</div>
+      </div>
+      <div class="panel-b"><div id="h-kendala"></div></div>
     </section>
 
     <section class="panel">
@@ -579,6 +623,39 @@ pre.script{margin:0;background:#0E1B33;color:#E6EDF8;border-radius:var(--r);padd
       </div>
     </section>
   </div><!-- /page-setup -->
+</div>
+<div class="modal" id="kdl-modal" hidden>
+  <div class="modal-bg" data-kdl-tutup></div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="kdl-judul">
+    <div class="modal-h">
+      <div>
+        <h3 id="kdl-judul">Kendala Hari Ini</h3>
+        <div class="modal-sub" id="kdl-sub"></div>
+      </div>
+      <button class="btn ghost" type="button" data-kdl-tutup aria-label="Tutup">Tutup</button>
+    </div>
+    <div class="modal-b">
+      <div class="field"><label>Kategori kendala</label>
+        <div class="chips" id="kdl-kat"></div></div>
+      <div class="grid2">
+        <div class="field"><label for="kdl-nilai">Perkiraan dampak (opsional)</label>
+          <input type="text" id="kdl-nilai" class="num-in" placeholder="misal 120jt">
+          <span class="hint">Berapa omzet yang diperkirakan hilang karena kendala ini.</span></div>
+        <div class="field"><label for="kdl-pic">Penanggung jawab (opsional)</label>
+          <input type="text" id="kdl-pic" placeholder="nama atau divisi"></div>
+      </div>
+      <div class="field"><label for="kdl-catatan">Uraian kendala</label>
+        <textarea id="kdl-catatan" rows="3" placeholder="Apa yang terjadi hari itu sampai target tidak tercapai"></textarea></div>
+      <div class="field"><label for="kdl-tindak">Tindak lanjut (opsional)</label>
+        <textarea id="kdl-tindak" rows="2" placeholder="Langkah perbaikan yang diambil"></textarea></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" id="kdl-hapus" type="button">Hapus catatan</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" type="button" data-kdl-tutup>Batal</button>
+      <button class="btn" id="kdl-simpan" type="button">Simpan kendala</button>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -789,6 +866,7 @@ function compute(){
           basisTot, rata, proyeksi, tekanan, ews, planTotal: PLAN_TOTAL,
           target: TB(), planAsli: planAsli(), kunci: state.active, label: perLabel(),
           pekan: Object.values(pekan).sort((a,b)=>a.pekan-b.pekan),
+          kendalaN: rows.filter(r=>r.d.kendala && r.d.kendala.kat).length,
           defisitKum: rows.filter(r=>r.closed).reduce((s,r)=>s+(r.d.base-r.d.total),0)};
 }
 
@@ -861,7 +939,7 @@ ${r.closed?("Realisasi "+rp(r.d.total)):("Beban +"+rp(r.beban)+"\nEfektif "+rp(r
 
 function wkRow(p){
   const sel = p.base-p.asli;
-  return `<tr class="wk" data-wk="${p.pekan}"><td colspan="13">
+  return `<tr class="wk" data-wk="${p.pekan}"><td colspan="14">
     <span class="wk-n">Pekan ${p.pekan}</span>
     <span class="wk-d">${p.label} · ${p.total} HK</span>
     <span class="wk-m">Rencana <b>${rp(p.base)}</b>${sel?` <i class="wk-cut">${sel>0?"+":""}${rp(sel)} vs asal</i>`:""}</span>
@@ -912,8 +990,21 @@ function rowHTML(r,i){
       <td class="n">${capai!=null?pct(capai):"—"}</td>
       <td class="n">${r.kum!=null?rp(r.kum):"—"}</td>
       <td>${st}</td>
+      <td class="kdl">${kendalaSel(r,i)}</td>
     </tr>`;
   }
+}
+
+/* Sel kendala: hanya tombol, isinya disunting lewat modal. */
+function kendalaSel(r,i){
+  const k = r.d.kendala;
+  if(k && k.kat){
+    const ket = [k.catatan,k.tindak].filter(Boolean).join(" · ").replace(/"/g,"&quot;");
+    return `<button class="btn mini terisi" data-kdl="${i}" title="${ket||k.kat}">
+      <span class="kdl-kat">${k.kat}</span>${k.nilai?`<span class="kdl-n">${rpS(k.nilai)}</span>`:""}</button>`;
+  }
+  const perlu = r.closed && r.dev!=null && r.dev<0;
+  return `<button class="btn mini ${perlu?"perlu":"ghost"}" data-kdl="${i}">${perlu?"Catat kendala":"Tambah"}</button>`;
 }
 
 function renderFoot(c){
@@ -937,6 +1028,7 @@ function renderFoot(c){
     <td class="n">${pct(c.realisasi/TB())}</td>
     <td class="n">${rp(c.realisasi)}</td>
     <td><span class="st ${c.ews==="AMAN"?"ok":c.ews==="WASPADA"?"warn":"bad"}">${c.ews}</span></td>
+    <td style="text-align:left;font-weight:600">${c.kendalaN? c.kendalaN+" hari tercatat" : "—"}</td>
   </tr>`;
 }
 
@@ -1024,7 +1116,7 @@ function render(){
        <div class="m">Tandai tanggal di kalender pengaturan untuk mulai.</div></div>`;
     document.getElementById("meter").innerHTML = "";
     document.getElementById("tbody").innerHTML =
-      `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:26px">
+      `<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:26px">
        Belum ada hari kerja pada periode ini. Buka tab Pengaturan Periode.</td></tr>`;
     document.getElementById("tfoot").innerHTML = "";
     document.getElementById("chart").innerHTML = "";
@@ -1185,8 +1277,43 @@ function renderHistori(){
       <td class="num" style="color:${r.dev==null?"inherit":(r.dev>=0?"var(--ok)":"var(--danger)")}">${r.dev!=null?(r.dev>=0?"+":"")+rp(r.dev):"—"}</td>
       <td class="num">${d.total!=null&&r.efektif>0?pct(d.total/r.efektif):"—"}</td>
       <td>${st}</td>
+      <td style="white-space:normal;max-width:320px">${d.kendala&&d.kendala.kat
+        ? `<b style="font-size:11.5px">${d.kendala.kat}</b>${d.kendala.nilai?` <span class="pctag">${rpS(d.kendala.nilai)}</span>`:""}
+           ${d.kendala.catatan?`<div style="font-size:11.5px;color:var(--muted)">${d.kendala.catatan}</div>`:""}
+           ${d.kendala.tindak?`<div style="font-size:11px;color:var(--muted-2)">Tindak lanjut: ${d.kendala.tindak}</div>`:""}
+           ${d.kendala.pic?`<div style="font-size:11px;color:var(--muted-2)">PIC: ${d.kendala.pic}</div>`:""}`
+        : `<span style="color:var(--muted-2)">—</span>`}</td>
     </tr>`;
   }).join("");
+
+  // rekap kendala
+  const kump = {};
+  cur.rows.forEach(r=>{
+    const k=r.d.kendala; if(!k||!k.kat) return;
+    const g = kump[k.kat] || (kump[k.kat]={kat:k.kat,n:0,nilai:0,dev:0,hari:[]});
+    g.n++; g.nilai += k.nilai||0; g.dev += (r.dev!=null && r.dev<0)? r.dev : 0;
+    g.hari.push("HK "+r.d.hk);
+  });
+  const daftarK = Object.values(kump).sort((a,b)=> b.n-a.n || b.nilai-a.nilai);
+  const boxK = document.getElementById("h-kendala");
+  if(!daftarK.length){
+    boxK.innerHTML = `<div style="color:var(--muted);font-size:12.5px">Belum ada kendala yang dicatat pada bulan ini.
+      Catat lewat tombol di kolom Kendala pada tab Monitoring.</div>`;
+  }else{
+    const totN = daftarK.reduce((a,b)=>a+b.n,0), totNilai = daftarK.reduce((a,b)=>a+b.nilai,0);
+    const maxN = Math.max(...daftarK.map(x=>x.n));
+    boxK.innerHTML =
+      `<div class="kdl-sum" style="margin-bottom:12px">
+        <div class="kd"><b>${totN} hari</b><span>tercatat kendalanya</span></div>
+        <div class="kd"><b>${rpS(totNilai)}</b><span>perkiraan dampak</span></div>
+        <div class="kd"><b>${daftarK[0].kat}</b><span>kendala terbanyak (${daftarK[0].n} hari)</span></div>
+      </div>`+
+      daftarK.map(g=>`<div class="bandingrow">
+        <div class="bn">${g.kat}<span>${g.hari.join(", ")}</span></div>
+        <div class="bbar" title="${g.n} hari"><i style="width:${(g.n/maxN*100).toFixed(1)}%;background:var(--beban)"></i></div>
+        <div class="bv">${g.n} hari<em>${g.nilai?rpS(g.nilai)+" dampak":"dampak belum diisi"}</em></div>
+      </div>`).join("");
+  }
 
   // perbandingan antar bulan
   const puncak = Math.max(...semua.map(x=>Math.max(x.c.target, x.c.realisasi)), 1);
@@ -1368,6 +1495,76 @@ function previewPeriode(){
     hk? `${hk} hari kerja · rata-rata ${rp(target/hk)} per hari` : "Tidak ada hari kerja";
 }
 
+/* =========================== MODAL KENDALA =========================== */
+const KATEGORI = ["Pelayanan lambat","Leads turun","Slot DP kurang","Pelunasan tertunda",
+  "Stok & produksi","Desain / approval","Pengiriman","Sistem / teknis",
+  "SDM & shift","Libur / cuaca","Harga & kompetitor","Lainnya"];
+let kdlIdx = null;
+
+function bukaKendala(i){
+  const d = state.days[i]; if(!d) return;
+  const c = compute(); const r = c.rows[i];
+  kdlIdx = i;
+  const k = d.kendala || {};
+  document.getElementById("kdl-judul").textContent = "Kendala HK "+d.hk+" · "+tglText(d.tgl);
+  document.getElementById("kdl-sub").innerHTML = r.closed
+    ? `Target efektif ${rp(r.efektif)} · realisasi ${rp(d.total)} · deviasi ${(r.dev>=0?"+":"")+rp(r.dev)}`
+    : `Belum closing · target efektif ${rp(r.efektif)}`;
+  document.getElementById("kdl-kat").innerHTML = KATEGORI.map(x=>
+    `<button type="button" data-kat="${x}" aria-pressed="${k.kat===x}">${x}</button>`).join("");
+  document.getElementById("kdl-nilai").value  = k.nilai!=null ? rp(k.nilai) : "";
+  document.getElementById("kdl-pic").value    = k.pic || "";
+  document.getElementById("kdl-catatan").value= k.catatan || "";
+  document.getElementById("kdl-tindak").value = k.tindak || "";
+  document.getElementById("kdl-hapus").style.visibility = (k && k.kat) ? "visible" : "hidden";
+  document.getElementById("kdl-modal").hidden = false;
+  setTimeout(()=>{ const f=document.querySelector('#kdl-kat button[aria-pressed="true"]')
+                        || document.querySelector('#kdl-kat button'); if(f) f.focus(); },0);
+}
+function tutupKendala(){ document.getElementById("kdl-modal").hidden = true; kdlIdx = null; }
+
+function simpanKendala(){
+  if(kdlIdx==null) return;
+  const kat = (document.querySelector('#kdl-kat button[aria-pressed="true"]')||{}).dataset;
+  const catatan = document.getElementById("kdl-catatan").value.trim();
+  if(!kat && !catatan){ toast("Pilih kategori atau isi uraiannya"); return; }
+  state.days[kdlIdx].kendala = {
+    kat: kat ? kat.kat : "Lainnya",
+    nilai: parseAmt(document.getElementById("kdl-nilai").value),
+    pic: document.getElementById("kdl-pic").value.trim(),
+    catatan,
+    tindak: document.getElementById("kdl-tindak").value.trim(),
+    waktu: new Date().toISOString()
+  };
+  const hk = state.days[kdlIdx].hk;
+  tutupKendala(); render(); toast("Kendala HK "+hk+" tersimpan");
+}
+function hapusKendala(){
+  if(kdlIdx==null) return;
+  if(!confirm("Hapus catatan kendala hari ini?")) return;
+  delete state.days[kdlIdx].kendala;
+  tutupKendala(); render(); toast("Catatan kendala dihapus");
+}
+
+document.getElementById("tbody").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-kdl]"); if(!b) return;
+  bukaKendala(+b.dataset.kdl);
+});
+document.getElementById("kdl-kat").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-kat]"); if(!b) return;
+  const aktif = b.getAttribute("aria-pressed")==="true";
+  document.querySelectorAll("#kdl-kat button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed", String(!aktif));
+});
+document.querySelectorAll("[data-kdl-tutup]").forEach(x=>x.addEventListener("click", tutupKendala));
+document.getElementById("kdl-simpan").addEventListener("click", simpanKendala);
+document.getElementById("kdl-hapus").addEventListener("click", hapusKendala);
+document.addEventListener("keydown", e=>{
+  if(document.getElementById("kdl-modal").hidden) return;
+  if(e.key==="Escape") tutupKendala();
+  if(e.key==="Enter" && (e.metaKey||e.ctrlKey)) simpanKendala();
+});
+
 /* =========================== EVENTS =========================== */
 document.getElementById("tbody").addEventListener("input", e=>{
   const el = e.target; if(!el.classList.contains("amt")) return;
@@ -1416,6 +1613,7 @@ function updateRowsExceptInputs(c){
     td[12].innerHTML = r.dev==null ? `<span class="st idle">Belum closing</span>`
       : r.dev>=0 ? `<span class="st ok">Tercapai</span>`
       : (r.dev > -0.10*r.efektif ? `<span class="st warn">Kurang</span>` : `<span class="st bad">Kritis</span>`);
+    td[13].innerHTML = kendalaSel(r,i);
   });
   renderFoot(c);
 }
@@ -1732,8 +1930,9 @@ function buildWorkbook(){
   const blank=(s)=>({v:null,s});
   const HEAD = ["HK","Tanggal","Hari","Pekan","Rencana Harian","Beban","Target Efektif","DP %","P %",
                 "DP Target","Pelunasan Target","Realisasi Total","Realisasi DP","Pelunasan",
-                "Deviasi","Capai","Kum. Realisasi","Status","Strategi","Keterangan"];
-  const WIDTH = [6,12,9,7,16,14,16,7,7,15,16,16,15,15,15,8,17,15,52,24];
+                "Deviasi","Capai","Kum. Realisasi","Status","Strategi","Keterangan",
+                "Kendala","Dampak Kendala","Tindak Lanjut","PIC"];
+  const WIDTH = [6,12,9,7,16,14,16,7,7,15,16,16,15,15,15,8,17,15,52,24,22,16,40,16];
   const NC = HEAD.length;
 
   const rows = [];
@@ -1798,6 +1997,11 @@ function buildWorkbook(){
     row[17]= S(r.dev==null?"BELUM CLOSING":(r.dev>=0?"TERCAPAI":(r.dev>-0.10*r.efektif?"KURANG":"KRITIS")),14);
     row[18]= S(d.strategi);
     row[19]= S(d.ket||"");
+    const kd = d.kendala||{};
+    row[20]= S(kd.kat||"");
+    row[21]= kd.nilai? N(kd.nilai) : blank(4);
+    row[22]= S([kd.catatan,kd.tindak?("Tindak lanjut: "+kd.tindak):""].filter(Boolean).join(" — "));
+    row[23]= S(kd.pic||"");
     rows.push(row);
   });
   const tot=new Array(NC).fill(null).map(()=>blank(12));
@@ -1843,6 +2047,32 @@ function buildWorkbook(){
            {v:Math.round(sum(p=>p.efektif)),t:"n",s:13},blank(12)]);
   const sheet2 = sheetXml(r2,[8,18,7,18,18,16,18,22,11],3,["A1:I1"]);
 
+  // ---- sheet 3: kendala ----
+  const r3=[];
+  r3.push([{v:"KENDALA HARIAN — "+perLabel().toUpperCase(),t:"s",s:1}]);
+  r3.push([]);
+  r3.push(["HK","Tanggal","Kategori","Dampak","Deviasi","Uraian","Tindak Lanjut","PIC"]
+          .map(h=>({v:h,t:"s",s:5})));
+  const berkendala = c.rows.filter(r=>r.d.kendala && r.d.kendala.kat);
+  berkendala.forEach(r=>{
+    const k=r.d.kendala;
+    r3.push([{v:r.d.hk,t:"n",s:14},{v:serial(r.d.tgl),t:"n",s:6},S(k.kat),
+             k.nilai?N(k.nilai):blank(4), r.dev!=null?N(r.dev):blank(4),
+             S(k.catatan||""),S(k.tindak||""),S(k.pic||"")]);
+  });
+  if(!berkendala.length) r3.push([S("Belum ada kendala yang dicatat pada bulan ini.",0)]);
+  r3.push([]);
+  r3.push([{v:"REKAP PER KATEGORI",t:"s",s:3}]);
+  r3.push(["Kategori","Jumlah Hari","Total Dampak","Total Deviasi"].map(h=>({v:h,t:"s",s:5})));
+  const grp={};
+  berkendala.forEach(r=>{ const k=r.d.kendala;
+    const g=grp[k.kat]||(grp[k.kat]={n:0,nilai:0,dev:0});
+    g.n++; g.nilai+=k.nilai||0; g.dev += (r.dev!=null&&r.dev<0)? r.dev : 0; });
+  Object.entries(grp).sort((a,b)=>b[1].n-a[1].n).forEach(([kat,g])=>{
+    r3.push([S(kat),{v:g.n,t:"n",s:14},N(g.nilai),N(g.dev)]);
+  });
+  const sheet3 = sheetXml(r3,[6,12,24,16,16,60,46,16],3,["A1:H1"]);
+
   const files=[
     {name:"[Content_Types].xml", data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -1851,6 +2081,7 @@ function buildWorkbook(){
 <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
 <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
 <Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
 <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>`},
     {name:"_rels/.rels", data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1859,17 +2090,19 @@ function buildWorkbook(){
 </Relationships>`},
     {name:"xl/workbook.xml", data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="Realisasi Harian" sheetId="1" r:id="rId1"/><sheet name="Rekap Pekan" sheetId="2" r:id="rId2"/></sheets>
+<sheets><sheet name="Realisasi Harian" sheetId="1" r:id="rId1"/><sheet name="Rekap Pekan" sheetId="2" r:id="rId2"/><sheet name="Kendala" sheetId="3" r:id="rId4"/></sheets>
 </workbook>`},
     {name:"xl/_rels/workbook.xml.rels", data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
 <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/>
 </Relationships>`},
     {name:"xl/styles.xml", data:STYLES},
     {name:"xl/worksheets/sheet1.xml", data:sheet1},
-    {name:"xl/worksheets/sheet2.xml", data:sheet2}
+    {name:"xl/worksheets/sheet2.xml", data:sheet2},
+    {name:"xl/worksheets/sheet3.xml", data:sheet3}
   ];
   return zipStore(files);
 }
@@ -1910,7 +2143,8 @@ function snapshot(){
     periods: Object.fromEntries(Object.entries(state.periods).map(([k,q])=>[k,{
       bulan:q.bulan, tahun:q.tahun, target:q.target, dpDefault:q.dpDefault, riwayat:q.riwayat||[],
       days:q.days.map(d=>({tgl:d.tgl,base:d.base,baseAsli:d.baseAsli,dpPct:d.dpPct,peak:!!d.peak,
-                           strategi:d.strategi,ket:d.ket,total:d.total,dp:d.dp}))}]))};
+                           strategi:d.strategi,ket:d.ket,total:d.total,dp:d.dp,
+                           kendala:d.kendala||null}))}]))};
 }
 function applyData(data){
   if(!data) return;
@@ -1922,7 +2156,8 @@ function applyData(data){
         riwayat:Array.isArray(q.riwayat)?q.riwayat:[],
         days:q.days.map(d=>({tgl:d.tgl, base:d.base||0, baseAsli:d.baseAsli??d.base??0,
           dpPct:d.dpPct??0.5, peak:!!d.peak, strategi:d.strategi||"", ket:d.ket||"",
-          total:d.total??null, dp:d.dp??null}))});
+          total:d.total??null, dp:d.dp??null,
+          kendala:(d.kendala && d.kendala.kat)? d.kendala : null}))});
     });
     if(Object.keys(per).length){
       state.periods=per;
